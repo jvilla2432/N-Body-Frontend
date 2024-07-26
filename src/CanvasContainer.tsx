@@ -1,12 +1,13 @@
 import { useRef, useState} from 'react';
 import React from 'react';
-import { Button, Grid } from '@mantine/core'
+import { Button, Grid, Slider, Text} from '@mantine/core'
 import RequestSimulation from "./RequestSimulation";
 import SelectSimulation from './SelectSimulation';
 
 export default function CanvasContainer() {
   const [displayID, setDisplayID] = useState("0");
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(1); 
+  const [time, setTime] = useState(1);
   const [simIDS, setSimIDS] = useState(["0", "1"]);
 
   async function addSimID(id: string) {
@@ -27,9 +28,9 @@ export default function CanvasContainer() {
     const canvasContex = canvas.getContext("2d")!;
     if (cache.current.has(displayID)) {
       const frameCount = cache.current.get(displayID)!.length;
-      const frameDuration = 2000 / frameCount;
+      const frameDuration = (time*1000) / frameCount;
       const render = (timeStamp: DOMHighResTimeStamp) => {
-        let currentTime = (timeStamp - zero) % 2000;
+        let currentTime = (timeStamp - zero) %  (time*1000);
         let frameNumber = Math.floor(currentTime / frameDuration);
         let currentFrame = cache.current.get(displayID)![frameNumber];
         canvasContex.clearRect(0, 0, canvasContex.canvas.width, canvasContex.canvas.height);
@@ -49,7 +50,7 @@ export default function CanvasContainer() {
     return () => {
       cancelAnimationFrame(requestId);
     }
-  }, [displayID, zoom]);
+  }, [displayID, zoom,time]);
 
   return (
     <>
@@ -58,6 +59,8 @@ export default function CanvasContainer() {
           <canvas ref={domID} id="tutorial" width="800" height="800"></canvas>
           <Button onClick={() => setZoom(zoom / 2)} variant="filled">Zoom out</Button>
           <Button onClick={() => setZoom(zoom * 2)} variant="filled">Zoom in</Button>
+          <Text>Simulation Timespan</Text>
+          <Slider min={1}  max={10} onChangeEnd={ (value) => setTime(value) } ></Slider>
           <SelectSimulation
             options={simIDS}
             changeSim={(x: string) => setDisplayID(x)}
